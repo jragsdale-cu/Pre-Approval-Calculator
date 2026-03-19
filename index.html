@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Pre-Approval | It's My Credit Union</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cu-red: #8B0000; --cu-red-dark: #6d0000; --cu-red-light: #a31515;
+            --warm-white: #faf9f7; --soft-cream: #f5f3ef;
+            --text-primary: #1a1a1a; --text-secondary: #4a4a4a; --text-muted: #6b6b6b;
+            --success: #0d7a3e; --success-bg: #e8f5ed;
+            --caution: #b45309; --caution-bg: #fef3cd;
+            --border: #e5e2dc;
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+            --radius: 12px; --radius-lg: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--warm-white); color: var(--text-primary); line-height: 1.6; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .logo { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 24px; }
+        .logo-icon { width: 48px; height: 48px; background: var(--cu-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .logo-icon svg { width: 28px; height: 28px; fill: white; }
+        .logo-text { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--cu-red); }
+        .header h1 { font-family: 'Fraunces', serif; font-size: clamp(28px, 5vw, 38px); font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+        .header p { font-size: 17px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+        .progress-container { display: flex; justify-content: center; gap: 8px; margin-bottom: 40px; }
+        .progress-step { display: flex; align-items: center; gap: 8px; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+        .step-circle.active { background: var(--cu-red); color: white; }
+        .step-circle.completed { background: var(--success); color: white; }
+        .step-circle.inactive { background: var(--border); color: var(--text-muted); }
+        .step-label { font-size: 14px; font-weight: 500; color: var(--text-secondary); display: none; }
+        @media (min-width: 600px) { .step-label { display: block; } }
+        .step-line { width: 40px; height: 2px; background: var(--border); margin: 0 4px; }
+        .step-line.completed { background: var(--success); }
+        .card { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+        .card-body { padding: 32px; }
+        @media (min-width: 600px) { .card-body { padding: 40px; } }
+        .form-section { display: none; animation: fadeIn 0.4s ease; }
+        .form-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+        .section-subtitle { font-size: 15px; color: var(--text-muted); margin-bottom: 28px; }
+        .form-grid { display: grid; gap: 20px; }
+        @media (min-width: 500px) { .form-grid.two-col { grid-template-columns: 1fr 1fr; } }
+        .form-group { position: relative; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: var(--radius); font-size: 16px; font-family: inherit; background: white; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--cu-red); box-shadow: 0 0 0 4px rgba(139, 0, 0, 0.1); }
+        .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 44px; cursor: pointer; -webkit-appearance: none; }
+        .input-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(calc(-50% + 12px)); color: var(--text-muted); font-size: 16px; pointer-events: none; }
+        .form-group.has-prefix input { padding-left: 32px; }
+        .form-hint { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+        .loan-type-grid { display: grid; gap: 12px; }
+        @media (min-width: 500px) { .loan-type-grid { grid-template-columns: repeat(2, 1fr); } }
+        .loan-type-card { border: 2px solid var(--border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px; }
+        .loan-type-card:hover { border-color: var(--cu-red-light); background: rgba(139, 0, 0, 0.02); }
+        .loan-type-card.selected { border-color: var(--cu-red); background: rgba(139, 0, 0, 0.05); }
+        .loan-type-icon { width: 48px; height: 48px; background: var(--soft-cream); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .loan-type-card.selected .loan-type-icon { background: var(--cu-red); }
+        .loan-type-icon svg { width: 24px; height: 24px; stroke: var(--cu-red); }
+        .loan-type-card.selected .loan-type-icon svg { stroke: white; }
+        .loan-type-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .loan-type-info p { font-size: 13px; color: var(--text-muted); }
+        .button-row { display: flex; gap: 12px; margin-top: 32px; }
+        .btn { flex: 1; padding: 16px 24px; border-radius: var(--radius); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--cu-red); color: white; }
+        .btn-primary:hover { background: var(--cu-red-dark); transform: translateY(-1px); }
+        .btn-secondary { background: var(--soft-cream); color: var(--text-secondary); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn svg { width: 20px; height: 20px; }
+        .results-container { text-align: center; }
+        .result-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; margin-bottom: 24px; }
+        .result-badge.approved { background: var(--success-bg); color: var(--success); }
+        .result-badge.review { background: var(--caution-bg); color: var(--caution); }
+        .result-badge svg { width: 18px; height: 18px; }
+        .result-headline { font-family: 'Fraunces', serif; font-size: clamp(24px, 4vw, 32px); font-weight: 700; margin-bottom: 8px; }
+        .result-subtext { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
+        .rate-display { background: linear-gradient(135deg, var(--cu-red) 0%, var(--cu-red-light) 100%); border-radius: var(--radius-lg); padding: 32px; color: white; margin-bottom: 24px; }
+        .rate-label { font-size: 14px; opacity: 0.9; margin-bottom: 4px; }
+        .rate-value { font-family: 'Fraunces', serif; font-size: 48px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+        .rate-apr { font-size: 14px; opacity: 0.8; }
+        .rate-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .rate-detail-item { text-align: center; }
+        .rate-detail-label { font-size: 11px; opacity: 0.8; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .rate-detail-value { font-size: 20px; font-weight: 700; }
+        .preapproval-amount { background: rgba(255,255,255,0.15); border-radius: var(--radius); padding: 20px; margin-top: 20px; }
+        .preapproval-amount-label { font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+        .preapproval-amount-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; }
+        .preapproval-amount-note { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+        .cta-button { display: block; width: 100%; padding: 18px 24px; background: var(--cu-red); color: white; text-decoration: none; border-radius: var(--radius); font-size: 17px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+        .cta-button:hover { background: var(--cu-red-dark); transform: translateY(-2px); }
+        .cta-subtext { font-size: 14px; color: var(--text-muted); }
+        .disclaimer-box { background: var(--soft-cream); border-radius: var(--radius); padding: 20px; margin-top: 24px; text-align: left; }
+        .disclaimer-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .disclaimer-title svg { width: 16px; height: 16px; }
+        .disclaimer-text { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+        .footer { text-align: center; padding: 32px 20px; font-size: 13px; color: var(--text-muted); }
+        .footer-logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .footer-logo-icon { width: 24px; height: 24px; background: var(--cu-red); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .footer-logo-icon svg { width: 14px; height: 14px; fill: white; }
+        .footer-logo-text { font-weight: 600; color: var(--text-secondary); }
+        .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 12px; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--cu-red); }
+        .ncua-badge { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; }
+        .start-over { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; margin-top: 20px; text-decoration: underline; }
+        .start-over:hover { color: var(--cu-red); }
+        .review-message { background: var(--caution-bg); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; text-align: left; }
+        .review-message h3 { font-size: 18px; font-weight: 600; color: var(--caution); margin-bottom: 8px; }
+        .review-message p { font-size: 15px; color: var(--text-secondary); }
+        .contact-options { display: grid; gap: 12px; margin-top: 24px; }
+        @media (min-width: 500px) { .contact-options { grid-template-columns: 1fr 1fr; } }
+        .contact-card { display: flex; align-items: center; gap: 12px; padding: 16px; background: white; border-radius: var(--radius); border: 1px solid var(--border); text-decoration: none; color: inherit; }
+        .contact-card:hover { border-color: var(--cu-red); }
+        .contact-icon { width: 40px; height: 40px; background: var(--soft-cream); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .contact-icon svg { width: 20px; height: 20px; stroke: var(--cu-red); }
+        .contact-info strong { display: block; font-size: 14px; margin-bottom: 2px; }
+        .contact-info span { font-size: 13px; color: var(--text-muted); }
+        .vehicle-age-grid { display: grid; gap: 10px; margin-top: 16px; }
+        @media (min-width: 500px) { .vehicle-age-grid { grid-template-columns: repeat(3, 1fr); } }
+        .vehicle-age-option { border: 2px solid var(--border); border-radius: var(--radius); padding: 14px 12px; text-align: center; cursor: pointer; }
+        .vehicle-age-option:hover { border-color: var(--cu-red-light); }
+        .vehicle-age-option.selected { border-color: var(--cu-red); background: rgba(139, 0, 0, 0.05); }
+        .vehicle-age-option strong { display: block; font-size: 14px; margin-bottom: 2px; }
+        .vehicle-age-option span { font-size: 12px; color: var(--text-muted); }
+        .conditional-field { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .conditional-field.show { display: block; }
+        .info-callout { background: #e8f4fd; border-left: 4px solid #2196F3; padding: 16px; border-radius: 0 var(--radius) var(--radius) 0; margin-top: 20px; }
+        .info-callout p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+        .info-callout strong { color: var(--text-primary); }
+        .tooltip-container { position: relative; display: inline-block; }
+        .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: var(--border); border-radius: 50%; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: help; margin-left: 6px; vertical-align: middle; }
+        .tooltip-icon:hover { background: var(--cu-red); color: white; }
+        .tooltip-content { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 280px; background: var(--text-primary); color: white; padding: 14px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 400; line-height: 1.5; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.25); transition: opacity 0.2s, visibility 0.2s; }
+        .tooltip-content::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: var(--text-primary); }
+        .tooltip-container:hover .tooltip-content { visibility: visible; opacity: 1; }
+        .tooltip-content strong { color: #fff; display: block; margin-bottom: 6px; }
+        .tooltip-content ul { margin: 8px 0 0 0; padding-left: 18px; }
+        .tooltip-content li { margin-bottom: 4px; }
+        .tooltip-include { color: #86efac; }
+        .tooltip-exclude { color: #fca5a5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <img src="data:image/webp;base64,UklGRu4eAABXRUJQVlA4WAoAAAAwAAAAcAEAiAAASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZBTFBIJhAAAA3wlm2TVku3reUYDrBADQeUgPGRXQJNAkgACS0lNCR0JBTjQ8DAwSgsoCGIyLgjA2j1fI+IcCBJCpzggTExwnLzhPCL8OP//lP8hmj7cislp96XhieiMf0E87IuPjzp+dMwrttq8qO6/QmTSZ3TU3KU8KdO6XKMlzj5CXj5GtqEJo/dZQnrcmNqFITTVdk74FUXIzB6DE1c53kzdAtuzcL3GtDH4ltPO6Vvmi7LvPiVO4a2MTp42+7zhfov157kDqed+IU/ZcBavxhu2PJanA7E/HIRdnFeCtyr3M+7fr7bPIZEQhl2CP12DebCr1ozXpWPbI/9Xm8lCHxy/z5fhHnwi2L6cou+fnkPb/vSMt3k9OuCkLKTwnAtculpvusZuIDpQqgoym/BLJ+v4V6Np4yf43Zvno8lEv+LsOLz1+yK6lIhUad/o+PyYnaUsauwQn7Ns77K0OR1MSrEuDjNzddh1+RlmPnookya6U68LN47Qddh1+IuPaYtSyRamsioqxuwEaXV9bvgzZFTr3S6iF9ybDdVwrRqmWudh6FSLrrnfGtzxK2ZjknkQqyAX9J/a0O2GiGEKdGuQbnorm8GbB413vUFWvZlnepGK01/dinuME4YvjVFT5pfzUUvKgGYMijy/u8qfdmOi3ShaHxBvd6w0orPm5l9rSghAR+YqUc3yj1IyTMP7LnoGS4zIrT2zVBPYDV76U1p9M5Ez8a24kvT5spO4P/7S0ayxHb5rgVIA6xK8S5UwRYF1UF3i3Sfy1r3IOzs8kylF4DQTP7J9D9/RZJ3Y3nWol0Mc1wEKdre1KNoe1aUbWK/aoQRroBXUOk3ni96+3ON3HPZiz12snlxesOv0k3gCFZ8INs3tS5/O5k4tMkAxUAIxLmIuPCujARN7UiY+e3SZ7Fc32jFZ3eRcYDMwlFgtBXylKjLwTtTrFmDuEiO75W75RrougUxmSJk5fwJc+E0IDG3DcqNxJzlMRLmHXJYIQ1U6rkoF2FWynkARIysVsCwUY/22bYlme5kvsKN76kcp+YSJ9kmzEq5RalF8zPR+EywmHgcLzchh2ioSgIGQVngEcoGpFSqJ2TIiywaYAZnwnoB3GJSCk54vL6LDNULL/xeAzf+gshY+ZaFwYxtjqeemW2GIk+xMtGoG5M8Mh5pDg+LjiVB/k6vlrAhW3xkI+My790gV60cw76ndY5rkJHhEUD/NUh7xrft7VKNko0K4JSGukuo9TCGBmQeHHeocARQBTdVZWr+3z6hvIBCYROdhz/z4HDoKjiMPxqSuF2hEdtbxJS4MDRZVtbhEUCr3Ka287grCtjwdh9wwrQK630TBw5TXAd1N1+dif1+CWeCGqzIqDY7iG7r4REz8qOLsTM8AigEsqySCt7ko2zRCJ5Ngv3dOaf9eNaK7RGOAJkAFeBvlopQpu4Ope6hnmi9ezqz8hKGDzOOeqvcM898vo3dg2Wp0+3Tsp7MmKP5j8V22S4LF5l3SSgyFXr7b7zHsnwR6zSXN3r6rPBE7OCmMdT5dI6HcdDWtXxHF5aDbMVvaDfj/t0+NSEGSWsB7EMXOhTNP3ip3QVe3L1fahqTRALprhkLPhj26WhKjcY9i8uN5e+PRIpchSY/7QDT+/3q8VKzMQTxGfr9HJZQ6y57XN+Lj2PUQGn9Pv342gdXHjK03DB+AqEQ5EO/ujHdQZoKhIWH7muLThxXA8lBP4fif7kHXe0m4yec03WbvfrNiUVd9hfmHgxuzuhYx3kpoWbztYJDGsynjKvfsO/oZgUqf36ccRpxH2ejDTAKFwNXT5y7BoFp0O21Xy9Sx3VoC9yvTScwzH0YMB5Ve0BoYjmB1NYKRaUlTZs3c1f8Mq2tvvsCm1448bqsdwH3q/a6Z1Px0Xt/BBGtGvBa05WQPXczotCXrtOAwbXt2DaKrWAmP5XRGu6kKRm4imliAb2YKzlFJR5C12v9ne7Ba4rNIOoUjHi39bD3d9h8dtfmyCk77Baj5xu9bmswWV0b0qVXOmuqqXIbyMtPcnzQsiu3gcvQZc6FGJua4gOtVsciXLGT+KRBjMB29V5pWl7RMNOcdzq57zZsrmKSEMVHnZyXsnrf3BvbE6j5BUcM7Eh9154UllTk3DmaYpXAROsym0tANhfEfqR9BkqDUKzG5CM4Jd9ipOtfUNzz2JFkvJkpNl2y3rcxf0I7vkKoPnY9SFpo1MVgRgPm8wXJAuVe692vIzP0cWVOacCzEe0Vdmsfh6q+JWkNmOM6rnzPx656k8FHZlibjgWL9zGaBm3tLkap4yINRzzQHLhGpOG8MysYH6D/TEcjBs2zW6oAbwP5OTxApcfS1RSW6t24/nmDB8dvsIyyoRY/RZswbgXtQdlAgyOps3K/ocu0TiuZNRCmz5TQWDBo++2Hnm4NwD/DvC5C9upoN2zlz3XAQIlyT6EeutBP+upXRv1zSWxQ6YstKla+p0/gILFb5mPzDoSLG0wGwzBtR4aQFsuhk6DGXlOk0W6i4dygRgGD5znR4U55kNE7rVoroAXxuorlAWvtdFyeZGZt9eHXz3otJDj16jGgQFdHgxUzw6fzGpHVITtYuy9726s4oLhfV7ktYUr8kLYByms+oQ/eol1nQ9vVlHfMOKdolht86eHtFpXYq1hiN2Z6U7I0ou9SAAossESxlaBadFI/W+5kWoB0TblGaNGsIROj+8u5pzZ72iTtMFxJVc1zk3sKA72LqWpZr3k8G1cwko7kUCCxbX45q+EwtG/CfpRqXVQ97XHayAZHnbLnEB1fo9FHPEA/Y3JKtF23fyXH+DfwQpaNFeoEC59Fmw8UoMnoI1dxckPyzb+y7D1Y4/rl+rrFaE2jnt4JlmdZGkcLSBd/sfgIDb8eGPRnrWMaVSUdxMwR0mBWmQOPVL0bkVeivswhEMdn63GZ0Rz7sy7WKZ23AENboNy+SvOTlhalO00i6vxvRbJ5KOmDrdiMO2Wl0ly+2H2E4C6s7n7g2YxKiwk4FU1AjHns6sEgLa917s5nt7pAaanAXNlGzJpbxoEaZ7My1DwWafphcj9o2NRVbSPBWykjm3xhS1V3bBIyTZZA39iVPJmOZYYb507i6GqdPszTQOOX6RuHiS+l2AwmM52wBzZZcufaXBjzU1hp4Xz3B1nLflxusXVuYqg7zXE9VgGZ3x8efoydyrWM/30ftzwG62/nyfowLJnJbCMHDz/2DT/oB6q6BP5P4Aecbm9FP2z+43/dftj6CUw1WGRt20/h8z+9OZ0B+8lfpPmPl97MNmH5Cfyquh/8dPsG9sE/hc/rx3v6qdr7g/HqK+3cfyf/+F6HEP6k/UH9ilu/+LXfrzD1b5FePCd8LMVA+YJ9ln1H00T4jb/oNy+VG/6+L+vPu5oHz226VMsfI//htKHxyheoAmc4LKhYk5X7UgD2hdy7kZsRLxCjULzEiM822yTW7ThlK8XVFrWKTA6fnk0mQFc3o/7BFyi7mq5gv6nt3Ke6a3muUwhNG8K82iiXqYSkAz6B0cPDxaHL1HwLxlmrunAZgpaCkTexBfsVoA+DGssdtvzVIpBUQ/kCZVfTD+xLrZ+5pA1xc0qMrO76CpMRbZkssmTctTGMIk+aqUwmEEpSW1Z1aBt9J+kMlFlNX7AvFZPHXVyVLruD8P2JpROBeoW3l/RE8bs0N5ViJXegzn47ux80/Szy/8r2II3dUIew5JbitoASFCfdJNH6JlosIVBseU847YgyMRbOQ10UBXxgUVnSemDUllmXKVdjoBaI1Zg37AoUojnepGLe5X3ZhmcIj1mXVykRQwhzOgJBB0pXszA8Mfyq7Er3x3oupFgGwv41DB0LNp2zziM8JDzd3ksB2LfZLk1L8Qei6FOW5KGjLkgJ0ZolbQjI3Jdh2c1VI50OmWCU5Wq0U4JETaitpAiJDPJywhNyDaC7PtQ8EX4Y6jHTM66HRLkMWWP48E13udQxVzVMrOmQWZZHBIo2PcloElCk5FRVrHCXqOvLDC9JWiDL3eJvRl0mjrOszLPYe1LJ3EYQHCKIobwsUJ7takCHmifCj0YlDbzuayZBmwv7OrF1k/0uiw68Km3YU0Wx0KRJg3S1Jo6UWjgh0BAjkoAQr1HtNO1AJk5xmsUmoYhSX22TYCVeu0HeujWiqEJwBvwG/1Jy5ghlrJu5jAogCe0n67HtoctreXzVIVQtKa2ZQMIWYzeqMjeHA2RxPUMYlq3bUwrVZzRML6SfiKBxC+2rMsx+u7nBMMlLTi4E7edAZtUL6snwa3pXnazcPBuzu3KxED48LgecLKT3oVIZD8DYTzbpST1baX6BIU8pyMuSyyL7mOappS41sIX8h4Rc5p4M2Y6ITSc03gaVipqh3iCvpBy6iZxApbPhV+ERJmC1W91dvwo4hYynqblXwhgyYaxCvZpZJRRREtN/ZxrRLSkjzy/tvlh10ijP8+K670IMXahDcTt6i1FeGh2txeZk+NU3qbHQTfqAAc7Tt1VipsyrndBMAZpOc8JqYgJTOvv0lpqOfBAFYmb6ujVOPXohFXBp7qS4a7m8mme6eLfuSIoZpdAedtDNcKtFxIOG/az9m0EBlDNXZctXTxfAhWupszy7x7I7yutPIt/rtN93u5O5jwBC86osdGVF3OJhOb4cbaJkpIMuRYpXFenHomq9nEqiRKZSeXXLCX/3xnWXcsq6s7rYwWKGa+TOrN8LoWoWbj+FHIrfCUyWsaHxhmWSNYIleNHYI5snA2iNXKVPO+V6i35bE0KrtrVqwuTg3ac8FdJcWSCviAsKD8cEzj4SK/bAUW01l1ISKCtecY1jWAe4BrzmJdD2gCuxJWcldQ8sxoWu4x1Dq5HwxXbZ2VP0na4u0xGIPMzMk9iMpVFtUih4WfNqWkKIbRXqUQcXy8uhmHfNokiZ1UTzStulJRwdhqjz5Y7B6vONhFvNV6S2OkZbHqORYnzHZp4WckfVwQ715Y4hy1nk8bLach/Nk7lMAzFrE4FMU6xDqHkTIoZUeiqyzeKZbWAYg159GuQ9LC9m3anDqVSHQKXYiDE+ZnLs5nksF2s6cNZGi2N4u+Bhn0cOiAsGU0M/SyUwhxyAskzUIGat6UhC8pySIy9lyttWTT+ZIVRT7KjEo4bLIO9cN+xrSu9vVVOFkhYduhrWlQAYKDUhKK1e6GJVmUSjrTJTWkWj9aVqWg032ilpuYjdsV+GHJ9DAEWmrG1d+89aQRthuzwPW5h1R/IKyz1ZDh6AtF7MoqamyKPTnGK2hgoYKLWlEW20LneTzCx9zNbCM0Jt6mgdy+quh3/pUEX6BZuHwi2TRGSVednDuNNUyPPhVrU1lIkt9sj1m7DmY9XQJlZU+g36MpaXhfugZahoCgJlKYWAmnpzy7PqfADICsz2uyExl2wt7CAl764VAfI/yNzlEFouJ9D0n0lD0Ouwfyh5dMl1RS0TaE7FKjt3RYJSSvx102QC+hmcLY9FWqNh/ErkpVqfzfmrAlSuJgoGC4Am+IHsckkNQcjl+RL+P9AjAFZQOCDSDAAAUDkAnQEqcQGJAD5RIo9Fo6IhEzjF/DgFBLU3cGBn/IHMN8A/QBFs8V/WfyI7SjbvXfyc/sf7P/QRXP7n+r/+G/K75aeQkY/1Z9tv2f95/xH/n/sPzl/pv+S/oHud/VXsAfqB/wf71/gP2e+KH9FPcJ+3fqA/Yv/pf0n3d/7J/jv9r++vyA/u34c/AB/H/8H/5f4171n+/9gf+0/+L2BP5J/a/+j7OH/B/9n9g+Cb9uP25+Bn+j/2v/4f7T3AP/d6gH/i9QD1v+kv8A/AD8AP397/DOMitKL0/un018zsqI7UuBOTzZkJQUSB4hul+DuomiDM0BE5T2XhpUPdFm3p9UKUjkOIpeWdT6mWCvbUNsE2RWzicHZg7JDbgnX935d4xxaiyuGhOSJT+mr8Zr8qVJakADV5GXJd5loerYJaDJwBcqitFqeYNPnZSNr5kz9fo1RnIL6UshgzPc8OPMn8lftg+rX7QtkNlftdk2vMtACvNcfKMb9GNdRoBd66+VhAcFAdS1sugtW7pfpzklMD2eKwiVEMg/hPGJrb708YPFA26fqkn3OudHkagBGm0zDEOWEU04368W1IC3SkmzVL4c5haf6NcgRb9GuQSl+jXIJROIAA/g3V//9YZVmmkqg5XGAXJH6XtDOTsD+DbuAK0+8WCOpGs+ADuJ4DxMof/+sMzXp9icK2lSgnrShZdTRGd+b/H4Nu4B4tUdfPQLs8G/jM8WoEdBsb3e6rLs2EibALnTEqW38HJHv2zBX20f39JSoyQg5zqfgc961yNIb16tZHotKAAEqxaHXzAhIT4GXz0kYst9bs/KmsbgksTfNAmHQblX9XnPGR6vRkzf/gjHk7pDUAbxwbHgliW79RSqPeVXJqt2nCfD8jqIT4gUUARHThyEw3/9BR/tKDoIgEGNOMWAqecZvJw3VtuWrP1Q+gYXXPcMIXYGk9ZajlHPohQAPFi4vfHYUz4E1VA4xchMcY7lKtZokHlm5/LY4E3xRltJKGDpD9Vn+Q4GkD3QBE3WVS2/JHjP5gCCEdmwQh8HKJEFud6fMycN/gLdk5cF81vtjMfVhAPSMxuwmYMDTltf2AcBPcfepYn5M5dFupl56/R58FB42pf14bugbk9q1WSjtq1J5DvFBF7XPSi8BK1zpVNm2Mt9CbflHYA0qhI5iqBD0U2EKjHzGX/zpB1/HCbb3G0IkPt9zz40ANzUeNMivS6CB62NXzF6EWJrXR9TgftoKiE1Hrko7Dqtg7gl+IDJvvtocluyU2g/79WeURkQbbxdtuMIHxDKvcmPYYRCsh5dTRaIdQvFS0Fc9nJJNn/kGUJnN0bMl84BTEEP5ha60yWPWNwBHk8oMCQCuQuaGxV7uuiy4jbWKJzxzEqt+wq679TPKZ8PfjaxFeJgOfBi94m/5Y914KpBNj//oKmSRGdsU8piMo9b4m6k25ODFyhNfedbvcBf9JR94mT/JnWWNdIkuJvabBl0SFPCMdIi5ght1idwhlZtVn8ZDeeDknoKykc1UV1+8XnPMP4QS/8nRLYJ8BI0v7JRYLhPmk7L+NFH6xTqopVagVMAsho4FrHwEploD25cD+GehUU1gK6kEV12kxlbRUL3UA3swpCKX/0KxGLRy+psf4O945u9+rXTUMK78Q6N965+3pcVKsR0/J4CJ+KqAOr8low4bcZj18XjcAnCddYBq9KQxrQCLErmQ5QU1DgBRLOHtGnaK4DagNJonvXRNRNnlgJyftrshYYJNOt+VP+gzfLlJCjRHg+99CtbzL6RvuUCjnd2tYejtsTpIc8SPBf1domK78/jb1MvoefrtAzodkVSIIDgGYfMAvhxu0hoVVTDo/YLVc5iGdBa/0XtQ0pCXkFCGqWjTZ1e79/5hLitqeOX6U/KdmlCWEdagKYNngY7Uerl6AKW4SADD7qOAfY4Y8A16mAg4kL4Pwv7imK7xaJ/GT5otMEgjhsugZpfcJVPREBNooT0yasho6n8Q/lae1VwIv0imux3LGmQRZkPwr3IVbllwYw7TwPpRNzKZuUzZkKoGvQBW9Au0/xvHouqhIQxFWWqycn7zK+SmIhnLMs7Ibi9Ev3NN8bwGJM7DdhQdZib4UAjpVwRleR6HfjVjNwGGyg58wVvvn9yo4YLJv69YL/IwdS9tsQWi91SSnv7TNq29g/H6LPiapZOV+4KEtOZeedpwA9ZTvWBN2coMn9F6BxREGY9W3LEVzG/nrqhufABDY9+eNc5RVdo9/5bmOR8EJmBnDGw03Sg6XqG1ZrftwpS5owOQ31S5eP//dwjQaAavNmW/u3yEz7HWj+AoJWT71hDB9r0nLQl2tfUYzNPzD1u9XmNDuPysCVXEOgW498A+KkkU6zCkHpy/1KhfL7W93JoeOgcDP/1j9Bzh3TdRw2g49qEWeIcz4c5JdZgjCdRKBTWngP/V5X+F5LaGOnwZPuZ2q0ZLiWlYrKj7rrbkLpQdFQpTcH1BPgobe98BZ93DxpHDJT8p/MIQcfx6CzVlVVKUQL8xBPvp7udV9Fmx6gnxeoBD4tyob63xQ3TYZF6I8knbXCmYkK3QpZhjadWdA5KHeFhLiCS9TAl6ChIkQpCZUBQmzHiwmguywT6qbUj7y1Fj9eP1dR+TxFd193/LLxcvPAtQHf/T8KtFksfUpQLqz67rkVcjphPNIhwCqaItC450YwwQTJs48b+MLyWxDieMcxO8caUe3hckG+9NQB72vyjrsdqrswiSGxUbZ6HCLhH2YeSJXtUzrrs5jNPdlYYV20bw/0QRKdT6xkgVWPX4rdE2THh6o4NtPLQ0ZbsHzqTYGmAPraPWml4HZPCVF8JFZgBZ7dwdtAeXIE9PCM1mPDxJMehgCL9K/bdXIowrA3qnAfCqoySOYMWw8GSr8dNEgh723w3o6EhyI37O+pNSNLNy8zRhmm1dO+DuC4wWMD8Iteec1dx8yxIP7rjyLyw9iuDywBPLNaGw17qId9/B1hkEfRGn7B3W76rqoHilo2gc1PdNiRr8+OTULqVwdD27czF8MGbrADzc10XF8ZBMhb0wPaMOlFrGAmPJDKBtDxlN6C1cjFLE3wboMK7Zt49arLZLLO0ND5LV+65isCg6i1aoJxSrvVzsSk0aBrdEWtScB799l+ZubuYnVujDcSlWYlaOuWsU6yrOy3WCZK3pPsAEQJdI8AVVNeilO8ChEl5VnPyxa3O1TCzENBZkUx0djF2UGI0/d1q13Q8gZZFOCI91ULqeuXzKkbF8v3zzAufl2wR44tgWynMeEO2DWpdke+BlIWZ9yxG8L7JI1B8GGdx/Opbzedo172yl7EPCnUIkeSafbNY1oPnNggdupgHaSDCEpYCHAF7WM64XWNxPSsN4HhVNARlVPzXneEUJrzZcZaeSKNCRnMM+PdHaJqYe9Py94FlA2kKnzHwD++vrpnEUj/zhWsnW0MlxgyfAWCO5DX79E4omv12aK/fqh9Aw0XQVvVh3SfEsxMetNaPIZktNcyfsKaybTy8/a/7WFGHW7uxc/Jy2E9/xjwv8bcQxmrW8icirMtifj7F/UoNk/YlBvfkilNtyz3BQKAJn3yUPcx0kIoCacn66JO1wP4lvS1aB15qyh+M/RDdBmhvDWBYO+bIp+YAAFsitoJoyv693l1HRM6suYf3Pbz1MQgfvp9G/aahmoftpsrNhdqcfISHYewj2H5lY4BEi835ETvK3+Hva56Mc+sJVUD1q7dkBSBxoGAiUMFiUDBVvtCZcwDgLSbkhlLMx87yZee5ZbREInVTvFJx5lu8wy6ms3N8LzhV8xBK41WMPv6+u9LU4FbZO8M6XDlh2gxiRD+UwnuhNwWoNNvZJZmvuhkv7Z3HRYV/8l1O1a6No4rASF6UbC5QUppbXXchopRjqSubc0d4rsT8ensc94nsuwQK3GdixCegEHY6QRHmNIT2Y0kUg6ME8LdNl0O+ddTFjtbY+qQKJc0/Lmqt32IXQEmd+xjkJG4YkrOFd83GPivDPmbkLVqzWgRoH++OhWHlTDq8VKFvgOqvhlW9SM+0znMEtvnRTcrQKnwzErveWi4m0UfqxnhQPj525WLYFKc1Ga/H66Dd5wiLGqu0mfXTrvZJZoj/7p1Tuq+qm20hh2d7qXcPdVNRqjYaRaXO9Nq+8ezAI/zZVkPUi28sfOHRiHMGtFKYpHBB//x0Rk+K1FAEvWFBBcMQvuD7zyD7aghtEU+eT+hlDUJr34eVk6BlCMZpjtVhR41XHhNyCZDtJbtR5WVX0nEw3jtbPTYzE0leTFx6P4wCpow1MmpbPnvseBUJRR5BcgmbzPflIl6TPcY4vCT58cDSVX5XgNW0konK0aGxMiaFYiK28HfQ9/k9VI6IxgYAAA" alt="It's My CU - Illinois State Credit Union" style="height: 50px; width: auto;">
+            </div>
+            <h1>Check Your Rate in Minutes</h1>
+            <p>See what you may qualify for — <strong>no credit pull, no impact to your score.</strong></p>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-step"><div class="step-circle active" id="step1-circle">1</div><span class="step-label">Loan Details</span></div>
+            <div class="step-line" id="line1"></div>
+            <div class="progress-step"><div class="step-circle inactive" id="step2-circle">2</div><span class="step-label">Your Info</span></div>
+            <div class="step-line" id="line2"></div>
+            <div class="progress-step"><div class="step-circle inactive" id="step3-circle">3</div><span class="step-label">Your Rate</span></div>
+        </div>
+
+        <div class="card"><div class="card-body">
+            <!-- Step 1 -->
+            <div class="form-section active" id="section1">
+                <h2 class="section-title">What are you looking for?</h2>
+                <p class="section-subtitle">Choose your loan type and tell us how much you need.</p>
+                <div class="loan-type-grid">
+                    <div class="loan-type-card" data-type="auto" onclick="selectLoanType(this)">
+                        <div class="loan-type-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2.5-5.5c-.3-.7-1-1.1-1.8-1.1H10c-.8 0-1.5.4-1.8 1.1L6 10l-2.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+                        <div class="loan-type-info"><h3>Auto Loan</h3><p>New or used vehicles</p></div>
+                    </div>
+                    <div class="loan-type-card" data-type="personal" onclick="selectLoanType(this)">
+                        <div class="loan-type-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                        <div class="loan-type-info"><h3>Personal Loan</h3><p>Debt consolidation, expenses</p></div>
+                    </div>
+                    <div class="loan-type-card" data-type="recreation" onclick="selectLoanType(this)">
+                        <div class="loan-type-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                        <div class="loan-type-info"><h3>RV / Boat / ATV</h3><p>Recreational vehicles</p></div>
+                    </div>
+                    <div class="loan-type-card" data-type="creditcard" onclick="selectLoanType(this)">
+                        <div class="loan-type-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+                        <div class="loan-type-info"><h3>Credit Card</h3><p>Visa credit card</p></div>
+                    </div>
+                </div>
+                <div class="conditional-field" id="vehicleAgeField">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; display: block;">Vehicle Year</label>
+                    <div class="vehicle-age-grid">
+                        <div class="vehicle-age-option" data-age="new" onclick="selectVehicleAge(this)"><strong>2023+</strong><span>New</span></div>
+                        <div class="vehicle-age-option" data-age="2022-2021" onclick="selectVehicleAge(this)"><strong>2022-21</strong><span>Recent</span></div>
+                        <div class="vehicle-age-option" data-age="2020-2019" onclick="selectVehicleAge(this)"><strong>2020-19</strong><span>Used</span></div>
+                        <div class="vehicle-age-option" data-age="2018" onclick="selectVehicleAge(this)"><strong>2018</strong><span>Used</span></div>
+                        <div class="vehicle-age-option" data-age="older" onclick="selectVehicleAge(this)"><strong>2017-</strong><span>Older</span></div>
+                    </div>
+                </div>
+                <div class="conditional-field" id="rvTypeField">
+                    <label style="font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; display: block;">New or Used?</label>
+                    <div class="vehicle-age-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="vehicle-age-option" data-rvtype="new" onclick="selectRVType(this)"><strong>New</strong><span>Untitled</span></div>
+                        <div class="vehicle-age-option" data-rvtype="used" onclick="selectRVType(this)"><strong>Used</strong><span>Titled</span></div>
+                    </div>
+                </div>
+                <div class="form-grid two-col" style="margin-top: 24px;">
+                    <div class="form-group has-prefix">
+                        <label for="loanAmount">How much do you need?</label>
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="loanAmount" placeholder="15,000" min="1000" max="100000">
+                    </div>
+                    <div class="form-group">
+                        <label for="loanTerm">Preferred term</label>
+                        <select id="loanTerm">
+                            <option value="">Select term...</option>
+                            <option value="36">36 months</option>
+                            <option value="48">48 months</option>
+                            <option value="60" selected>60 months</option>
+                            <option value="66">66 months</option>
+                            <option value="72">72 months</option>
+                            <option value="84">84 months</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="button-row"><button class="btn btn-primary" onclick="nextStep(1)">Continue <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="form-section" id="section2">
+                <h2 class="section-title">Tell us about yourself</h2>
+                <p class="section-subtitle">This helps us estimate your rate. <strong>No credit pull required.</strong></p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="creditScore">Estimated credit score</label>
+                        <select id="creditScore">
+                            <option value="">Select a range...</option>
+                            <option value="760">Excellent (740+)</option>
+                            <option value="720">Very Good (700-739)</option>
+                            <option value="680">Good (660-699)</option>
+                            <option value="630">Fair (600-659)</option>
+                            <option value="570">Building Credit (Below 600)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid two-col">
+                    <div class="form-group has-prefix">
+                        <label for="annualIncome">Annual income (before taxes)</label>
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="annualIncome" placeholder="45000" min="0">
+                    </div>
+                    <div class="form-group has-prefix">
+                        <label for="monthlyDebt">Monthly debt payments
+                            <span class="tooltip-container">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-content">
+                                    <strong>What to include:</strong>
+                                    <ul>
+                                        <li class="tooltip-include">Auto loan payments</li>
+                                        <li class="tooltip-include">Credit card minimum payments</li>
+                                        <li class="tooltip-include">Student loan payments</li>
+                                        <li class="tooltip-include">Personal loan payments</li>
+                                        <li class="tooltip-include">Mortgage/rent payments</li>
+                                    </ul>
+                                    <strong style="margin-top: 10px;">Don't include:</strong>
+                                    <ul>
+                                        <li class="tooltip-exclude">Utilities (electric, water, gas)</li>
+                                        <li class="tooltip-exclude">Phone/internet bills</li>
+                                        <li class="tooltip-exclude">Insurance premiums</li>
+                                        <li class="tooltip-exclude">Groceries & daily expenses</li>
+                                    </ul>
+                                </span>
+                            </span>
+                        </label>
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="monthlyDebt" placeholder="500" min="0">
+                    </div>
+                </div>
+                <div class="form-grid two-col">
+                    <div class="form-group"><label for="firstName">First name</label><input type="text" id="firstName" placeholder="John"></div>
+                    <div class="form-group"><label for="lastName">Last name</label><input type="text" id="lastName" placeholder="Smith"></div>
+                </div>
+                <div class="form-grid two-col">
+                    <div class="form-group"><label for="email">Email address</label><input type="email" id="email" placeholder="john@example.com"></div>
+                    <div class="form-group"><label for="phone">Phone number</label><input type="tel" id="phone" placeholder="(309) 555-1234"></div>
+                </div>
+                <div class="info-callout"><p><strong>Existing ISCU member?</strong> You may qualify for an additional 0.50% rate discount!</p></div>
+                <div class="button-row">
+                    <button class="btn btn-secondary" onclick="prevStep(2)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+                    <button class="btn btn-primary" onclick="calculateRate()">See My Rate <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Approved -->
+            <div class="form-section" id="section3-approved">
+                <div class="results-container">
+                    <div class="result-badge approved"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Pre-Qualified</div>
+                    <h2 class="result-headline">Great news, <span id="resultName">there</span>!</h2>
+                    <p class="result-subtext">Based on the information you provided, here's what you may qualify for:</p>
+                    <div class="rate-display">
+                        <div class="rate-label">Your estimated rate as low as</div>
+                        <div class="rate-value" id="resultRate">5.99%</div>
+                        <div class="rate-apr">APR*</div>
+                        <div class="preapproval-amount">
+                            <div class="preapproval-amount-label">Pre-Qualified Up To</div>
+                            <div class="preapproval-amount-value" id="resultMaxAmount">$25,000</div>
+                            <div class="preapproval-amount-note">Based on income and estimated credit</div>
+                        </div>
+                        <div class="rate-details">
+                            <div class="rate-detail-item"><div class="rate-detail-label">Est. Payment</div><div class="rate-detail-value" id="resultPayment">$483</div></div>
+                            <div class="rate-detail-item"><div class="rate-detail-label">Term</div><div class="rate-detail-value" id="resultTerm">60 mo</div></div>
+                            <div class="rate-detail-item"><div class="rate-detail-label">Loan Type</div><div class="rate-detail-value" id="resultType">Auto</div></div>
+                        </div>
+                    </div>
+                    <button class="cta-button" onclick="showApplication()">Complete My Application →</button>
+                    <p class="cta-subtext">Takes about 5 minutes • Decision usually same day</p>
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Important Information</div>
+                        <div class="disclaimer-text"><strong>This is not a commitment to lend or guarantee of approval.</strong> This pre-qualification is an estimate based solely on unverified information you provided and does not guarantee loan approval, rate, or amount. Actual rate, term, and approved amount determined after verification, complete application review, and credit report. Rates shown are lowest available; your rate may be higher based on creditworthiness, LTV, amount, and term. Rate floor 4.24% APR. All loans subject to credit approval and membership eligibility. Must live or work in McLean, Logan, DeWitt, or Winnebago County. Rates effective October 6, 2025, subject to change.</div>
+                    </div>
+                    <button class="start-over" onclick="startOver()">Start Over</button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Application Form -->
+            <div class="form-section" id="section4-application">
+                <h2 class="section-title">Complete Your Application</h2>
+                <p class="section-subtitle">Fill out the form below to finalize your loan application.</p>
+                <div style="margin: 20px -20px;">
+                    <iframe
+                      id="JotFormIFrame-243185098910158"
+                      title="Loan Application"
+                      onload="window.parent.scrollTo(0,0)"
+                      allowtransparency="true"
+                      allow="geolocation; microphone; camera; fullscreen; payment"
+                      src="https://form.jotform.com/isucu/black-friday-loan-special"
+                      frameborder="0"
+                      style="min-width:100%;max-width:100%;height:4041px;border:none;"
+                      scrolling="no"
+                    >
+                    </iframe>
+                </div>
+                <button class="start-over" onclick="startOver()">Start Over</button>
+            </div>
+
+            <!-- Step 3: Review -->
+            <div class="form-section" id="section3-review">
+                <div class="results-container">
+                    <div class="result-badge review"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Let's Talk</div>
+                    <h2 class="result-headline">Thanks, <span id="resultNameReview">there</span>!</h2>
+                    <p class="result-subtext">We'd like to learn more to find the best option for you.</p>
+                    <div class="review-message">
+                        <h3>We're here to help</h3>
+                        <p>Every situation is unique. Our team specializes in finding solutions — including our Starter/Restart program for those building or rebuilding credit.</p>
+                    </div>
+                    <div class="contact-options">
+                        <a href="tel:3094518400" class="contact-card">
+                            <div class="contact-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.78.37 1.5.7 2.18a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.68.33 1.4.57 2.18.7A2 2 0 0122 16.92z"/></svg></div>
+                            <div class="contact-info"><strong>Call Us</strong><span>(309) 451-8400</span></div>
+                        </a>
+                        <a href="javascript:void(0)" class="contact-card" onclick="showApplication()">
+                            <div class="contact-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                            <div class="contact-info"><strong>Apply Anyway</strong><span>Full application</span></div>
+                        </a>
+                    </div>
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Important Information</div>
+                        <div class="disclaimer-text">This result is based on limited, unverified information and does not represent a final credit decision. We encourage you to apply or speak with a loan officer. All loans subject to credit approval. Membership eligibility required — must live or work in McLean, Logan, DeWitt, or Winnebago County.</div>
+                    </div>
+                    <button class="start-over" onclick="startOver()">Start Over</button>
+                </div>
+            </div>
+        </div></div>
+
+        <footer class="footer">
+            <div class="footer-logo">
+                <img src="data:image/webp;base64,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" alt="It's My CU - Illinois State Credit Union" style="height: 35px; width: auto;">
+            </div>
+            <div>NMLS# 571095 • Routing #271186931</div>
+            <div class="footer-links">
+                <a href="https://itsmycreditunion.org/privacy" target="_blank">Privacy</a>
+                <a href="https://itsmycreditunion.org/security" target="_blank">Security</a>
+                <a href="https://itsmycreditunion.org/" target="_blank">itsmycreditunion.org</a>
+            </div>
+            <div class="ncua-badge"><strong>Federally Insured by NCUA</strong><br>Equal Housing Lender • © 2025 Illinois State Credit Union</div>
+        </footer>
+    </div>
+
+<script>
+let selectedLoanType = null, selectedVehicleAge = null, selectedRVType = null, currentStep = 1;
+
+// ACTUAL RATE SHEET (October 6, 2025)
+const rates = {
+    auto: {
+        'new': { 760: 4.74, 720: 4.99, 680: 5.99, 630: 9.24, 570: 14.24, term: 66 },
+        '2022-2021': { 760: 4.89, 720: 5.14, 680: 6.14, 630: 9.39, 570: 14.39, term: 66 },
+        '2020-2019': { 760: 5.09, 720: 5.34, 680: 6.34, 630: 9.59, 570: 14.59, term: 60 },
+        '2018': { 760: 6.29, 720: 6.54, 680: 7.54, 630: 10.79, 570: 15.79, term: 48 },
+        'older': { 760: 8.79, 720: 9.04, 680: 10.04, 630: 13.29, 570: 18.29, term: 48 }
+    },
+    personal: { 760: 10.24, 720: 11.74, 680: 13.74, 630: 16.74, 570: 20.74, term: 60 },
+    recreation: {
+        'new': { 760: 8.25, 720: 9.75, 680: 11.75, 630: 14.75, 570: 18.75, term: 120 },
+        'used': { 760: 8.75, 720: 10.25, 680: 12.25, 630: 15.25, 570: 19.25, term: 120 }
+    },
+    creditcard: { 760: 12.90, 720: 14.90, 680: 17.90, 630: 19.90, 570: 19.90 }
+};
+
+// Credit tier max limits
+const tierLimits = { 760: 75000, 720: 60000, 680: 45000, 630: 25000, 570: 15000 };
+const creditCardLimits = { 760: 25000, 720: 15000, 680: 10000, 630: 5000, 570: 2000 };
+const personalLoanMax = 30000;
+const creditCardMax = 30000;
+const MAX_DTI = 0.43;
+
+function selectLoanType(card) {
+    document.querySelectorAll('.loan-type-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedLoanType = card.dataset.type;
+    document.getElementById('vehicleAgeField').classList.toggle('show', selectedLoanType === 'auto');
+    document.getElementById('rvTypeField').classList.toggle('show', selectedLoanType === 'recreation');
+    if (selectedLoanType !== 'auto') { selectedVehicleAge = null; document.querySelectorAll('#vehicleAgeField .vehicle-age-option').forEach(o => o.classList.remove('selected')); }
+    if (selectedLoanType !== 'recreation') { selectedRVType = null; document.querySelectorAll('#rvTypeField .vehicle-age-option').forEach(o => o.classList.remove('selected')); }
+    
+    // Update labels and visibility for credit card
+    const amountLabel = document.querySelector('label[for="loanAmount"]');
+    const termGroup = document.getElementById('loanTerm').closest('.form-group');
+    if (selectedLoanType === 'creditcard') {
+        amountLabel.textContent = 'Desired credit limit (optional)';
+        document.getElementById('loanAmount').placeholder = '10,000';
+        termGroup.style.display = 'none';
+    } else {
+        amountLabel.textContent = 'How much do you need?';
+        document.getElementById('loanAmount').placeholder = '15,000';
+        termGroup.style.display = 'block';
+    }
+}
+
+function selectVehicleAge(opt) {
+    document.querySelectorAll('#vehicleAgeField .vehicle-age-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedVehicleAge = opt.dataset.age;
+}
+
+function selectRVType(opt) {
+    document.querySelectorAll('#rvTypeField .vehicle-age-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedRVType = opt.dataset.rvtype;
+}
+
+function updateProgress(step) {
+    for (let i = 1; i <= 3; i++) {
+        const c = document.getElementById(`step${i}-circle`);
+        c.classList.remove('active', 'completed', 'inactive');
+        if (i < step) { c.classList.add('completed'); c.innerHTML = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>'; }
+        else if (i === step) { c.classList.add('active'); c.textContent = i; }
+        else { c.classList.add('inactive'); c.textContent = i; }
+    }
+    document.getElementById('line1').classList.toggle('completed', step > 1);
+    document.getElementById('line2').classList.toggle('completed', step > 2);
+}
+
+function nextStep(from) {
+    if (from === 1) {
+        if (!selectedLoanType) { alert('Please select a loan type.'); return; }
+        if (selectedLoanType === 'auto' && !selectedVehicleAge) { alert('Please select the vehicle year.'); return; }
+        if (selectedLoanType === 'recreation' && !selectedRVType) { alert('Please select new or used.'); return; }
+        const loanAmount = parseFloat(document.getElementById('loanAmount').value) || 0;
+        const loanTerm = document.getElementById('loanTerm').value;
+        if (selectedLoanType === 'creditcard') {
+            // Credit cards: amount is optional (will default to max limit), term not needed
+            // No validation needed
+        } else {
+            if (!loanAmount || loanAmount < 1000) { alert('Please enter how much you need (minimum $1,000).'); return; }
+            if (!loanTerm) { alert('Please select your preferred term.'); return; }
+        }
+    }
+    document.getElementById(`section${from}`).classList.remove('active');
+    document.getElementById(`section${from + 1}`).classList.add('active');
+    currentStep = from + 1;
+    updateProgress(currentStep);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevStep(from) {
+    document.getElementById(`section${from}`).classList.remove('active');
+    document.getElementById(`section${from - 1}`).classList.add('active');
+    currentStep = from - 1;
+    updateProgress(currentStep);
+}
+
+function calcMaxAmount(monthlyIncome, existingDebt, rate, term, tierLimit) {
+    // Use debt as entered by member (they include rent/mortgage in their input)
+    const maxPayment = (monthlyIncome * MAX_DTI) - existingDebt;
+    if (maxPayment <= 0) return 0;
+    const r = rate / 100 / 12;
+    const maxFromDTI = maxPayment * ((1 - Math.pow(1 + r, -term)) / r);
+    return Math.min(Math.round(maxFromDTI / 1000) * 1000, tierLimit);
+}
+
+function calcPayment(principal, rate, term) {
+    const r = rate / 100 / 12;
+    return (principal * r * Math.pow(1 + r, term)) / (Math.pow(1 + r, term) - 1);
+}
+
+function calculateRate() {
+    const creditScore = document.getElementById('creditScore').value;
+    const annualIncome = parseFloat(document.getElementById('annualIncome').value) || 0;
+    const monthlyDebt = parseFloat(document.getElementById('monthlyDebt').value) || 0;
+    const firstName = document.getElementById('firstName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const requestedAmount = parseFloat(document.getElementById('loanAmount').value) || 0;
+    const requestedTerm = parseInt(document.getElementById('loanTerm').value) || 0;
+
+    if (!creditScore) { alert('Please select your estimated credit score.'); return; }
+    if (!annualIncome) { alert('Please enter your annual income.'); return; }
+    if (!firstName) { alert('Please enter your first name.'); return; }
+    if (!email) { alert('Please enter your email address.'); return; }
+
+    const score = parseInt(creditScore);
+    const monthlyIncome = annualIncome / 12;
+    // Use debt as entered (member includes rent/mortgage)
+    const currentDTI = monthlyDebt / monthlyIncome;
+    const needsReview = (score <= 570 && currentDTI > 0.4);
+
+    document.getElementById('section2').classList.remove('active');
+
+    if (needsReview) {
+        document.getElementById('section3-review').classList.add('active');
+        document.getElementById('resultNameReview').textContent = firstName;
+    } else {
+        let rate, defaultTerm, typeName, isCreditCard = false, isPersonal = false;
+        if (selectedLoanType === 'auto') {
+            const d = rates.auto[selectedVehicleAge];
+            rate = d[score] || d[570]; defaultTerm = d.term; typeName = 'Auto';
+        } else if (selectedLoanType === 'recreation') {
+            const d = rates.recreation[selectedRVType];
+            rate = d[score] || d[570]; defaultTerm = Math.min(d.term, 84); typeName = 'RV/Boat';
+        } else if (selectedLoanType === 'creditcard') {
+            rate = rates.creditcard[score] || rates.creditcard[570];
+            defaultTerm = 0; typeName = 'Credit Card'; isCreditCard = true;
+        } else {
+            rate = rates.personal[score] || rates.personal[570];
+            defaultTerm = rates.personal.term; typeName = 'Personal'; isPersonal = true;
+        }
+
+        // Apply product-specific max limits
+        let tierLimit = isCreditCard ? (creditCardLimits[score] || creditCardLimits[570]) : (tierLimits[score] || tierLimits[570]);
+        if (isCreditCard) tierLimit = Math.min(tierLimit, creditCardMax);
+        if (isPersonal) tierLimit = Math.min(tierLimit, personalLoanMax);
+        
+        let finalAmount, term, payment;
+        
+        if (isCreditCard) {
+            // Credit card: use credit limit approach, no term/payment calculation
+            const requestedLimit = requestedAmount || tierLimit;
+            finalAmount = Math.min(requestedLimit, tierLimit);
+            finalAmount = Math.round(finalAmount / 500) * 500;
+            finalAmount = Math.max(finalAmount, 500);
+            term = 0;
+            payment = 0;
+        } else {
+            // Use requested term (capped by product max)
+            const maxTermForProduct = selectedLoanType === 'recreation' ? 120 : (selectedLoanType === 'auto' ? 84 : 60);
+            term = Math.min(requestedTerm, maxTermForProduct);
+            
+            // Calculate our max pre-approval amount
+            const calculatedMax = calcMaxAmount(monthlyIncome, monthlyDebt, rate, term, tierLimit);
+            
+            // Use member's requested amount if it's within our calculated max (or close to it)
+            // "Close" = within 110% of calculated max, we'll use their number
+            if (requestedAmount <= calculatedMax * 1.1) {
+                // Use their requested amount (rounded to nearest $500)
+                finalAmount = Math.round(requestedAmount / 500) * 500;
+            } else {
+                // Their request exceeds what we can approve - show our calculated max
+                finalAmount = calculatedMax;
+            }
+            
+            // Apply product max caps
+            if (isPersonal) finalAmount = Math.min(finalAmount, personalLoanMax);
+            
+            // Ensure minimum of $1,000
+            finalAmount = Math.max(finalAmount, 1000);
+            
+            payment = calcPayment(finalAmount, rate, term);
+        }
+
+        document.getElementById('resultName').textContent = firstName;
+        document.getElementById('resultRate').textContent = rate.toFixed(2) + '%';
+        document.getElementById('resultMaxAmount').textContent = '$' + finalAmount.toLocaleString();
+        
+        // Update labels based on product type
+        const preapprovalLabel = document.querySelector('.preapproval-amount-label');
+        const paymentLabel = document.querySelector('.rate-detail-item:first-child .rate-detail-label');
+        const termLabel = document.querySelector('.rate-detail-item:nth-child(2) .rate-detail-label');
+        
+        if (isCreditCard) {
+            preapprovalLabel.textContent = 'Credit Limit Up To';
+            paymentLabel.textContent = 'Min Payment';
+            termLabel.textContent = 'Type';
+            document.getElementById('resultPayment').textContent = 'Variable';
+            document.getElementById('resultTerm').textContent = 'Revolving';
+        } else {
+            preapprovalLabel.textContent = 'Pre-Qualified Up To';
+            paymentLabel.textContent = 'Est. Payment';
+            termLabel.textContent = 'Term';
+            document.getElementById('resultPayment').textContent = '$' + Math.round(payment).toLocaleString();
+            document.getElementById('resultTerm').textContent = term + ' mo';
+        }
+        document.getElementById('resultType').textContent = typeName;
+
+        document.getElementById('section3-approved').classList.add('active');
+    }
+    currentStep = 3;
+    updateProgress(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startOver() {
+    document.querySelectorAll('.loan-type-card, .vehicle-age-option').forEach(c => c.classList.remove('selected'));
+    selectedLoanType = selectedVehicleAge = selectedRVType = null;
+    document.getElementById('vehicleAgeField').classList.remove('show');
+    document.getElementById('rvTypeField').classList.remove('show');
+    ['creditScore', 'annualIncome', 'monthlyDebt', 'firstName', 'lastName', 'email', 'phone', 'loanAmount', 'loanTerm'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('section3-approved').classList.remove('active');
+    document.getElementById('section3-review').classList.remove('active');
+    document.getElementById('section4-application').classList.remove('active');
+    document.getElementById('section1').classList.add('active');
+    currentStep = 1;
+    updateProgress(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showApplication() {
+    document.getElementById('section3-approved').classList.remove('active');
+    document.getElementById('section3-review').classList.remove('active');
+    document.getElementById('section4-application').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('phone').addEventListener('input', function(e) {
+    let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+    e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+});
+</script>
+<script src='https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js'></script>
+<script>window.jotformEmbedHandler("iframe[id='JotFormIFrame-243185098910158']", "https://form.jotform.com/")</script>
+</body>
+</html>
